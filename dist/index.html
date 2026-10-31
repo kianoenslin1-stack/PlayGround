@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no" />
+    <meta name="theme-color" content="#0a0506" />
+    <meta name="description" content="BLOODPIT — a first-person gore arena. Choose a sword or a hammer and paint the sand red." />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='10' fill='%230a0506'/%3E%3Cpath d='M16 10h32l-3 26H19z' fill='%23c9b89a'/%3E%3Ccircle cx='25' cy='27' r='5.5' fill='%230a0506'/%3E%3Ccircle cx='39' cy='27' r='5.5' fill='%230a0506'/%3E%3Cpath d='M28 38h8v8h-8z' fill='%23c9b89a'/%3E%3Cpath d='M19 44h26v4H19z' fill='%238f1118'/%3E%3C/svg%3E" />
+    <title>BLOODPIT — Arena of the Red King</title>
+    <script type="module" crossorigin src="./assets/index-BYf-czVS.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-BEIutLmd.css">
+  </head>
+  <body>
+    <canvas id="scene"></canvas>
+
+    <div id="fx-vignette" aria-hidden="true"></div>
+    <div id="fx-grain" aria-hidden="true"></div>
+    <canvas id="fx-blood" aria-hidden="true"></canvas>
+    <div id="damage-flash" aria-hidden="true"></div>
+
+    <div id="hud" class="hidden" aria-live="polite">
+      <div id="hud-top">
+        <div id="health-block">
+          <div class="hud-label">VITALITY</div>
+          <div id="health-bar"><div id="health-fill"></div><div id="health-lag"></div></div>
+          <div id="weapon-readout">
+            <span id="weapon-icon" class="weapon-icon sword" aria-hidden="true"></span>
+            <span id="weapon-name">Sword</span>
+            <span id="weapon-kind">CLEAVER</span>
+          </div>
+        </div>
+
+        <div id="wave-block">
+          <div class="hud-label">THE RED KING'S ARENA</div>
+          <div id="wave-number">WAVE I</div>
+          <div id="enemies-left">0 CHALLENGERS REMAIN</div>
+        </div>
+
+        <div id="score-block">
+          <div class="hud-label">GLORY</div>
+          <div id="score">0</div>
+          <div id="kills">0 KILLS</div>
+        </div>
+      </div>
+
+      <div id="combo-wrap" class="hidden">
+        <div id="combo-mult">x2</div>
+        <div id="combo-label">CARNAGE</div>
+        <div id="combo-timer"><i></i></div>
+      </div>
+
+      <div id="boss-wrap" class="hidden">
+        <div id="boss-name">THE EXECUTIONER</div>
+        <div id="boss-bar"><div id="boss-fill"></div></div>
+      </div>
+
+      <div id="crosshair" aria-hidden="true">
+        <span class="ch-dot"></span>
+        <span class="ch-tick t"></span>
+        <span class="ch-tick b"></span>
+        <span class="ch-tick l"></span>
+        <span class="ch-tick r"></span>
+        <svg id="charge-ring" viewBox="0 0 100 100">
+          <circle class="ring-bg" cx="50" cy="50" r="42"></circle>
+          <circle id="ring-fill" cx="50" cy="50" r="42"></circle>
+        </svg>
+        <div id="hitmarker"></div>
+      </div>
+
+      <div id="interact-prompt" class="hidden"><kbd>E</kbd> <span>TAKE THE HAMMER</span></div>
+      <div id="exec-prompt" class="hidden"><kbd>E</kbd> <span>EXECUTE</span></div>
+
+      <div id="banner" class="hidden">
+        <div id="banner-kicker">WAVE I</div>
+        <div id="banner-title">LET THE BLOOD FLOW</div>
+        <div id="banner-sub">20 CHALLENGERS</div>
+      </div>
+
+      <div id="killfeed"></div>
+      <div id="floaters" aria-hidden="true"></div>
+
+      <div id="hint">
+        <span><kbd>WASD</kbd> MOVE</span>
+        <span><kbd>LMB</kbd> ATTACK <em>hold to charge</em></span>
+        <span><kbd>RMB</kbd> GUARD</span>
+        <span><kbd>SHIFT</kbd> DODGE</span>
+        <span><kbd>SPACE</kbd> SHOVE</span>
+        <span><kbd>ESC</kbd> PAUSE</span>
+      </div>
+
+      <button id="pause-btn" aria-label="Pause">II</button>
+    </div>
+
+    <div id="touch-controls" class="hidden" aria-hidden="true">
+      <div id="stick-zone">
+        <div id="stick-base"><div id="stick-knob"></div></div>
+      </div>
+      <div id="touch-actions">
+        <button id="t-kick" class="touch-btn small" data-action="kick">KICK</button>
+        <button id="t-dodge" class="touch-btn small" data-action="dodge">DODGE</button>
+        <button id="t-block" class="touch-btn medium" data-action="block">GUARD</button>
+        <button id="t-attack" class="touch-btn big" data-action="attack">STRIKE<small>hold</small></button>
+        <button id="t-exec" class="touch-btn execute hidden" data-action="execute">EXECUTE</button>
+      </div>
+    </div>
+
+    <div id="menu" class="overlay open">
+      <div class="menu-noise"></div>
+      <div class="menu-frame">
+        <div class="menu-topline"><span>THE RED KING PRESENTS</span><span>NO MERCY · NO REFUGE</span></div>
+        <h1 class="logo">
+          <span class="logo-blood">BLOOD</span><span class="logo-pit">PIT</span>
+          <span class="logo-drips" aria-hidden="true"></span>
+        </h1>
+        <p class="tagline">A FIRST-PERSON ARENA OF STEEL &amp; SLAUGHTER</p>
+
+        <div class="weapon-pick" role="radiogroup" aria-label="Choose your weapon">
+          <button class="weapon-card selected" data-weapon="sword" role="radio" aria-checked="true">
+            <span class="icon-sword" aria-hidden="true">
+              <svg viewBox="0 0 120 120"><path d="M96 8 72 32 40 84l-8-8 52-32L108 20z"/><path d="M28 78 12 110l32-16-4-12z" /><path d="M46 62 58 74" /></svg>
+            </span>
+            <span class="wc-name">SWORD</span>
+            <span class="wc-line">Fast · Slicing</span>
+            <span class="wc-desc">Take the limbs. Take the head. Take them apart.</span>
+            <span class="wc-stat"><i style="--v: 88%"></i><em>SPEED</em></span>
+            <span class="wc-stat"><i style="--v: 62%"></i><em>SEVER</em></span>
+          </button>
+
+          <button class="weapon-card" data-weapon="hammer" role="radio" aria-checked="false">
+            <span class="icon-hammer" aria-hidden="true">
+              <svg viewBox="0 0 120 120"><path d="M36 18h48l10 22-10 22H36L26 40z"/><path d="M54 62h12v46H54z"/><path d="M44 104h32" /></svg>
+            </span>
+            <span class="wc-name">HAMMER</span>
+            <span class="wc-line">Slow · Crushing</span>
+            <span class="wc-desc">Cave in the skull. Break the body. Leave nothing whole.</span>
+            <span class="wc-stat"><i style="--v: 46%"></i><em>SPEED</em></span>
+            <span class="wc-stat"><i style="--v: 97%"></i><em>CRUSH</em></span>
+          </button>
+        </div>
+
+        <div class="menu-actions">
+          <button id="play-btn" class="play-btn">Play</button>
+          <div class="menu-meta">
+            <div><b id="best-score">0</b><span>HIGHEST GLORY</span></div>
+            <div><b id="best-wave">—</b><span>DEEPEST WAVE</span></div>
+            <div class="gore-note"><b>MAXIMUM</b><span>BLOOD &amp; GORE</span></div>
+          </div>
+        </div>
+
+        <div class="menu-controls">
+          <span><kbd>WASD</kbd> MOVE</span>
+          <span><kbd>MOUSE</kbd> LOOK</span>
+          <span><kbd>LMB</kbd> SLASH · HOLD TO CHARGE</span>
+          <span><kbd>RMB</kbd> GUARD</span>
+          <span><kbd>SHIFT</kbd> DODGE</span>
+          <span><kbd>E</kbd> EXECUTE / LOOT</span>
+        </div>
+        <p class="content-note">Contains stylised fantasy violence, dismemberment and blood. Not for the squeamish.</p>
+      </div>
+    </div>
+
+    <div id="pause" class="overlay">
+      <div class="panel">
+        <div class="panel-kicker">THE CROWD WAITS</div>
+        <h2>PAUSED</h2>
+        <div class="panel-actions">
+          <button id="resume-btn" class="play-btn">Resume</button>
+          <button id="quit-btn" class="ghost-btn">Quit to title</button>
+        </div>
+        <div class="panel-stats">
+          <div><b id="pause-wave">WAVE I</b><span>WAVE</span></div>
+          <div><b id="pause-kills">0</b><span>KILLS</span></div>
+          <div><b id="pause-score">0</b><span>GLORY</span></div>
+        </div>
+        <p class="panel-note">Mouse look is released while paused. Click Resume to return to the pit.</p>
+      </div>
+    </div>
+
+    <div id="gameover" class="overlay">
+      <div class="panel gameover-panel">
+        <div class="panel-kicker">THE SAND DRINKS DEEP</div>
+        <h2>YOU DIED</h2>
+        <p id="death-line">The crowd got what it paid for.</p>
+        <div class="panel-stats">
+          <div><b id="go-wave">I</b><span>WAVE REACHED</span></div>
+          <div><b id="go-kills">0</b><span>CHALLENGERS SLAIN</span></div>
+          <div><b id="go-score">0</b><span>GLORY</span></div>
+        </div>
+        <div class="panel-actions">
+          <button id="retry-btn" class="play-btn">Play Again</button>
+          <button id="menu-btn" class="ghost-btn">Choose weapon</button>
+        </div>
+        <p class="panel-note" id="go-record"></p>
+      </div>
+    </div>
+
+    <div id="loading" class="overlay open">
+      <div class="load-mark">BLOODPIT</div>
+      <div class="load-bar"><i></i></div>
+      <div class="load-text">FORGING STEEL…</div>
+    </div>
+
+    <div id="rotate-note" class="hidden">For the fullest carnage, turn your phone sideways.</div>
+
+  </body>
+</html>
