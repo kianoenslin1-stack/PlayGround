@@ -1,0 +1,29 @@
+{
+  "name": "playground",
+  "version": "1.0.0",
+  "description": "<!-- omgithub:readme:start --> ## 🚀 Build, play, and remix with OMGithub",
+  "main": "src/main.js",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "vite build --base ./",
+    "preview": "vite preview --host 0.0.0.0",
+    "test": "vite build --base ./"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kianoenslin1-stack/PlayGround.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/kianoenslin1-stack/PlayGround/issues"
+  },
+  "homepage": "https://github.com/kianoenslin1-stack/PlayGround#readme",
+  "dependencies": {
+    "three": "^0.180.0"
+  },
+  "devDependencies": {
+    "vite": "^7.1.7"
+  }
+}

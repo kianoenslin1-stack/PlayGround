@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#080605" />
+  <meta name="description" content="Iron Requiem — a cinematic dark-fantasy arena of steel, blood, and survival." />
+  <title>IRON REQUIEM — Dark Fantasy Arena</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚔️</text></svg>" />
+  <script type="module" crossorigin src="./assets/index-BrP1SVrp.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-CguaKaFL.css">
+</head>
+<body>
+  <div id="app">
+    <canvas id="stage" aria-label="Iron Requiem arena"></canvas>
+
+    <div class="world-grade" aria-hidden="true"></div>
+    <div class="grain" aria-hidden="true"></div>
+    <div class="letterbox top" aria-hidden="true"></div>
+    <div class="letterbox bottom" aria-hidden="true"></div>
+    <div id="damage-flash" aria-hidden="true"></div>
+    <div id="blood-screen" aria-hidden="true"></div>
+    <div id="parry-flash" aria-hidden="true"></div>
+
+    <!-- Loading -->
+    <section id="loading-screen" class="screen loading-screen is-active" aria-live="polite">
+      <div class="load-mark">
+        <svg viewBox="0 0 80 80" aria-hidden="true"><path d="M40 5 48 28 71 20 58 40 76 54 51 54 50 77 40 58 30 77 29 54 4 54 22 40 9 20 32 28Z"/></svg>
+      </div>
+      <p class="kicker">FORGING THE ARENA</p>
+      <div class="load-track"><i></i></div>
+      <span class="load-sub">The crowd is already hungry.</span>
+    </section>
+
+    <!-- Title -->
+    <section id="title-screen" class="screen title-screen" aria-label="Main menu">
+      <div class="title-top">
+        <span class="sigil">✦</span>
+        <span>THE LAST VIGIL PRESENTS</span>
+        <span class="sigil">✦</span>
+      </div>
+
+      <div class="title-lockup">
+        <p class="eyebrow">AN ENDLESS TRIAL OF BLOOD &amp; STEEL</p>
+        <h1><span>IRON</span><span class="title-red">REQUIEM</span></h1>
+        <div class="title-rule"><i></i><b>⚔</b><i></i></div>
+        <p class="title-sub">Every scar is a lesson. Every name is forgotten.</p>
+      </div>
+
+      <div class="title-menu-wrap">
+        <div class="menu-ornament">CHOOSE YOUR END</div>
+        <nav class="main-menu" aria-label="Main menu">
+          <button id="btn-start" class="menu-btn primary" aria-label="Start">
+            <span class="menu-index">I</span>
+            <span class="menu-label">ENTER THE ARENA</span>
+            <span class="menu-note">WAVE I</span>
+          </button>
+          <button id="btn-armory" class="menu-btn">
+            <span class="menu-index">II</span>
+            <span class="menu-label">ARMORY</span>
+            <span class="menu-note">UNLOCK</span>
+          </button>
+          <button id="btn-settings" class="menu-btn">
+            <span class="menu-index">III</span>
+            <span class="menu-label">RITES</span>
+            <span class="menu-note">SETTINGS</span>
+          </button>
+          <button id="btn-codex" class="menu-btn">
+            <span class="menu-index">IV</span>
+            <span class="menu-label">BESTIARY</span>
+            <span class="menu-note">LORE</span>
+          </button>
+        </nav>
+      </div>
+
+      <aside class="title-loadout">
+        <span class="panel-kicker">CURRENT VIGIL</span>
+        <div class="loadout-row">
+          <div class="weapon-glyph" id="title-weapon-glyph">🗡</div>
+          <div>
+            <strong id="title-weapon">ASHEN LONGSWORD</strong>
+            <span id="title-armor">VIGIL PLATE · RANK 1</span>
+          </div>
+        </div>
+        <div class="progress-line"><i id="title-xp" style="width:18%"></i></div>
+        <div class="progress-meta"><span>RENOWN</span><span id="title-renown">0</span></div>
+      </aside>
+
+      <footer class="title-footer">
+        <span>18+ · MATURE THEMES · BLOOD &amp; VIOLENCE</span>
+        <span class="footer-mid"><i></i> HEADPHONES RECOMMENDED <i></i></span>
+        <span>BUILD 0.9.4 — THE RED HOUR</span>
+      </footer>
+    </section>
+
+    <!-- HUD -->
+    <div id="hud" class="hud" aria-hidden="true">
+      <div class="hud-top-left">
+        <div class="portrait-mark"><span>V</span></div>
+        <div class="vitals">
+          <div class="vital health"><span class="vital-label">VITALITY</span><div class="bar"><i id="health-bar"></i><em id="health-lag"></em></div><b id="health-text">100</b></div>
+          <div class="vital stamina"><span class="vital-label">STAMINA</span><div class="bar"><i id="stamina-bar"></i></div></div>
+          <div class="status-chips"><span id="armor-chip">PLATE 100%</span><span id="combo-chip">NO CHAIN</span></div>
+        </div>
+      </div>
+
+      <div class="hud-top-center">
+        <p id="arena-name">THE GILDED PIT</p>
+        <strong id="wave-label">WAVE I</strong>
+        <span id="wave-objective">SURVIVE THE CROWD'S HUNGER</span>
+        <div class="wave-pips" id="wave-pips"></div>
+      </div>
+
+      <div class="hud-top-right">
+        <div class="score-block"><span>SCORE</span><b id="score-value">000000</b></div>
+        <div class="score-block small"><span>BLOODMARKS</span><b id="marks-value">0</b></div>
+      </div>
+
+      <div class="boss-hud" id="boss-hud">
+        <div class="boss-title"><span>CHAMPION OF THE PIT</span><b id="boss-name">THE PALE WARDEN</b></div>
+        <div class="boss-bar"><i id="boss-fill"></i></div>
+        <p id="boss-rule">NO MERCY IS GIVEN. NONE IS ASKED.</p>
+      </div>
+
+      <div id="target-layer" class="target-layer"></div>
+      <div id="enemy-layer" class="enemy-layer"></div>
+      <div id="float-layer" class="float-layer"></div>
+
+      <div class="reticle" id="reticle"><i></i><b></b><em></em></div>
+
+      <div class="hud-bottom-left">
+        <div class="weapon-card">
+          <span class="panel-kicker">ARMED</span>
+          <strong id="hud-weapon">ASHEN LONGSWORD</strong>
+          <div class="weapon-stat-line"><span>REACH</span><i><b id="stat-reach"></b></i><span>HIT</span><i><b id="stat-hit"></b></i></div>
+        </div>
+        <div class="chain-card"><span>CHAIN</span><b id="chain-value">×1.00</b><em id="chain-timer"></em></div>
+      </div>
+
+      <div class="hud-bottom-right">
+        <div class="rage-block">
+          <div class="rage-caption"><span>BLOODLUST</span><b id="rage-text">0</b></div>
+          <div class="rage-bar"><i id="rage-bar"></i></div>
+          <span class="rage-hint">E · EXECUTE WHEN BROKEN</span>
+        </div>
+        <div class="stamina-warning" id="stamina-warning">STAMINA SPENT</div>
+      </div>
+
+      <div class="control-ribbon" id="control-ribbon">
+        <span><b>WASD</b> MOVE</span><span><b>LMB</b> STRIKE</span><span><b>RMB</b> GUARD / PARRY</span><span><b>Q</b> HEAVY</span><span><b>SPACE</b> DODGE</span><span><b>E</b> EXECUTE</span><span><b>ESC</b> PAUSE</span>
+      </div>
+
+      <div id="announcement" class="announcement"><span id="announce-kicker">THE CROWD RISES</span><strong id="announce-title">WAVE I</strong><p id="announce-sub">SURVIVE</p></div>
+      <div id="execution-prompt" class="execution-prompt"><b>E</b><span>EXECUTE</span></div>
+      <div id="slowmo-vignette" aria-hidden="true"></div>
+      <div id="hit-marker" aria-hidden="true"></div>
+    </div>
+
+    <!-- Touch controls -->
+    <div id="touch-ui" class="touch-ui" aria-hidden="true">
+      <div id="joystick" class="joystick"><i></i><b></b></div>
+      <div class="touch-actions">
+        <button data-touch="dodge">DODGE</button>
+        <button data-touch="block">GUARD</button>
+        <button data-touch="heavy">HEAVY</button>
+        <button data-touch="attack" class="attack">STRIKE</button>
+        <button data-touch="execute" class="execute">EXECUTE</button>
+      </div>
+      <div class="touch-look-hint">DRAG RIGHT SIDE TO LOOK</div>
+    </div>
+
+    <!-- Armory / boons -->
+    <section id="armory-screen" class="screen overlay-screen armory-screen" aria-label="Armory">
+      <div class="overlay-head">
+        <div><span class="panel-kicker">THE LAST VIGIL</span><h2>ARMORY</h2><p>Steel is honest. Spend what the dead left behind.</p></div>
+        <div class="currency-chip"><span>BLOODMARKS</span><b id="armory-marks">0</b></div>
+        <button class="icon-close" data-close="armory" aria-label="Close">✕</button>
+      </div>
+      <div class="armory-body">
+        <div class="armory-main">
+          <div class="tab-row"><button class="tab active" data-tab="weapons">WEAPONS</button><button class="tab" data-tab="armor">ARMOR</button><button class="tab" data-tab="boons">BOONS</button></div>
+          <div id="armory-grid" class="armory-grid"></div>
+        </div>
+        <aside class="armory-detail" id="armory-detail">
+          <div class="detail-glow"></div>
+          <div id="armory-icon" class="detail-icon">🗡</div>
+          <span class="panel-kicker" id="detail-type">ONE-HANDED SWORD</span>
+          <h3 id="detail-name">ASHEN LONGSWORD</h3>
+          <p id="detail-desc">A vigil blade, notched by a hundred nameless duels. Balanced, quick, and honest.</p>
+          <div class="detail-stats" id="detail-stats"></div>
+          <button id="armory-action" class="primary-btn">EQUIPPED</button>
+        </aside>
+      </div>
+      <div class="armory-foot"><span>EARN BLOODMARKS BY SURVIVING WAVES AND BREAKING CHAMPIONS.</span><span id="armory-progress">BEST WAVE — I</span></div>
+    </section>
+
+    <!-- Boons between waves -->
+    <section id="boon-screen" class="screen overlay-screen boon-screen" aria-label="Choose a boon">
+      <div class="boon-head">
+        <span class="panel-kicker">THE CROWD DEMANDS MORE</span>
+        <h2>WAVE <span id="boon-wave">I</span> SURVIVED</h2>
+        <p>Take one gift from the fallen. Then return to the sand.</p>
+      </div>
+      <div id="boon-grid" class="boon-grid"></div>
+      <div class="boon-foot"><span id="boon-reward">+120 BLOODMARKS</span><button id="btn-next-wave" class="primary-btn" disabled>CHOOSE A BOON</button></div>
+    </section>
+
+    <!-- Pause -->
+    <section id="pause-screen" class="screen overlay-screen pause-screen" aria-label="Paused">
+      <div class="pause-panel">
+        <span class="panel-kicker">THE CROWD WAITS</span>
+        <h2>PAUSED</h2>
+        <div class="pause-stats"><div><span>WAVE</span><b id="pause-wave">I</b></div><div><span>KILLS</span><b id="pause-kills">0</b></div><div><span>SCORE</span><b id="pause-score">0</b></div></div>
+        <button id="btn-resume" class="primary-btn" aria-label="Resume">RETURN TO THE SAND</button>
+        <button id="btn-pause-settings" class="ghost-btn">RITES &amp; SETTINGS</button>
+        <button id="btn-abandon" class="ghost-btn danger">ABANDON THE VIGIL</button>
+      </div>
+    </section>
+
+    <!-- Settings -->
+    <section id="settings-screen" class="screen overlay-screen settings-screen" aria-label="Settings">
+      <div class="overlay-head">
+        <div><span class="panel-kicker">TUNE YOUR END</span><h2>RITES</h2><p>Sharpen the senses. Soften the world.</p></div>
+        <button class="icon-close" data-close="settings" aria-label="Close">✕</button>
+      </div>
+      <div class="settings-body">
+        <label class="setting"><span>MASTER VOLUME <b id="vol-val">75%</b></span><input id="set-volume" type="range" min="0" max="100" value="75" /></label>
+        <label class="setting"><span>LOOK SENSITIVITY <b id="sens-val">1.0</b></span><input id="set-sens" type="range" min="30" max="200" value="100" /></label>
+        <label class="setting"><span>BLOOD &amp; GORE <b id="gore-val">CINEMATIC</b></span><input id="set-gore" type="range" min="0" max="2" step="1" value="2" /></label>
+        <label class="setting"><span>RENDER SCALE <b id="scale-val">AUTO</b></span><input id="set-scale" type="range" min="0" max="2" step="1" value="0" /></label>
+        <label class="setting toggle"><span>CAMERA SHAKE</span><input id="set-shake" type="checkbox" checked /></label>
+        <label class="setting toggle"><span>REDUCED MOTION</span><input id="set-motion" type="checkbox" /></label>
+      </div>
+      <p class="settings-note">This experience contains graphic medieval violence, dismemberment, and mature themes. 18+.</p>
+    </section>
+
+    <!-- Codex -->
+    <section id="codex-screen" class="screen overlay-screen codex-screen" aria-label="Bestiary">
+      <div class="overlay-head">
+        <div><span class="panel-kicker">WHAT WAITS IN THE SAND</span><h2>BESTIARY</h2><p>Know the shape of your death before it holds a blade.</p></div>
+        <button class="icon-close" data-close="codex" aria-label="Close">✕</button>
+      </div>
+      <div class="codex-grid">
+        <article><span class="codex-number">I</span><h3>THE GLADIATOR</h3><em>THE HUNGRY</em><p>Quick, shield-bearing, and desperate. Break the guard, then the man.</p><div class="codex-tags"><span>FAST</span><span>SHIELD</span></div></article>
+        <article><span class="codex-number">II</span><h3>THE KNIGHT</h3><em>THE OATHBOUND</em><p>Heavy plate and a mourning star. Parry the slow arc or be unmade by it.</p><div class="codex-tags"><span>HEAVY</span><span>ARMORED</span></div></article>
+        <article><span class="codex-number">III</span><h3>THE BERSERKER</h3><em>THE UNQUIET</em><p>Two axes, no shield, no retreat. He only knows the space between heartbeats.</p><div class="codex-tags"><span>RELENTLESS</span><span>BLEED</span></div></article>
+        <article class="boss"><span class="codex-number">IV</span><h3>THE CHAMPION</h3><em>THE CROWNED</em><p>A monument of iron and spite. Every fifth wave, the gate opens for one of them.</p><div class="codex-tags"><span>BOSS</span><span>UNSTAGGERABLE</span></div></article>
+      </div>
+      <div class="codex-quote">“The sand does not remember the names of the brave. Only the weight of their blood.”</div>
+    </section>
+
+    <!-- Game over -->
+    <section id="death-screen" class="screen death-screen" aria-label="You died">
+      <div class="death-shade"></div>
+      <div class="death-content">
+        <span class="death-kicker">THE CROWD FALLS SILENT</span>
+        <h2>REQUIEM</h2>
+        <p class="death-sub" id="death-sub">YOUR NAME JOINS THE SAND</p>
+        <div class="death-stats">
+          <div><span>WAVE REACHED</span><b id="death-wave">I</b></div>
+          <div><span>FOES BROKEN</span><b id="death-kills">0</b></div>
+          <div><span>SCORE</span><b id="death-score">0</b></div>
+          <div><span>BLOODMARKS EARNED</span><b id="death-marks">0</b></div>
+        </div>
+        <div class="death-actions"><button id="btn-retry" class="primary-btn">RISE AGAIN</button><button id="btn-menu" class="ghost-btn">RETURN TO THE VIGIL</button></div>
+      </div>
+    </section>
+
+    <div id="toast-layer" class="toast-layer" aria-live="polite"></div>
+    <div id="boot-error" class="boot-error" hidden></div>
+  </div>
+
+</body>
+</html>
