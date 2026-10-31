@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#120606">
+<title>BLOODPIT — Arena of the Damned</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23120606'/%3E%3Cpath d='M32 6l5 10-1 26-4 6-4-6-1-26z' fill='%23c1121f'/%3E%3Crect x='20' y='44' width='24' height='5' fill='%23e8dcc3'/%3E%3Crect x='29' y='49' width='6' height='10' fill='%23e8dcc3'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+<div id="app">
+  <canvas id="game"></canvas>
+
+  <div id="vignette"></div>
+  <div id="blood-overlay"></div>
+  <div id="damage-flash"></div>
+  <div id="lowhp"></div>
+
+  <!-- ============ HUD ============ -->
+  <div id="hud" class="hidden">
+    <div class="hud-top">
+      <div class="hud-left">
+        <div class="health-label"><span>VITALITY</span><span id="health-num">100</span></div>
+        <div class="health-bar">
+          <div id="health-fill"></div>
+          <div id="health-ghost"></div>
+          <div class="health-ticks"></div>
+        </div>
+        <div id="dash-wrap">
+          <div id="dash-fill"></div>
+          <span>DASH</span>
+        </div>
+      </div>
+
+      <div class="hud-center">
+        <div id="wave-label">WAVE I</div>
+        <div id="enemy-label">2 GLADIATORS REMAIN</div>
+      </div>
+
+      <div class="hud-right">
+        <div class="stat"><b id="kills">0</b><small>KILLS</small></div>
+        <div class="stat"><b id="score">0</b><small>SCORE</small></div>
+        <div class="stat combo hidden" id="combo-stat"><b id="combo">x2</b><small>FRENZY</small></div>
+      </div>
+    </div>
+
+    <div id="weapon-hud">
+      <div id="weapon-icon" class="sword-icon"></div>
+      <div>
+        <div id="weapon-name">GLADIATOR SWORD</div>
+        <div id="weapon-sub">SEVER · BISECT · DECAPITATE</div>
+      </div>
+    </div>
+
+    <div id="boss-bar" class="hidden">
+      <div class="boss-name">THE BUTCHER OF THE PIT</div>
+      <div class="boss-track"><div id="boss-fill"></div></div>
+    </div>
+
+    <div id="crosshair"><i></i></div>
+    <div id="announce"></div>
+    <div id="popups"></div>
+    <div id="hint">LMB STRIKE &nbsp;·&nbsp; SHIFT DASH &nbsp;·&nbsp; ESC PAUSE</div>
+    <button id="pause-btn" title="Pause">II</button>
+  </div>
+
+  <!-- ============ MENU ============ -->
+  <div id="menu" class="screen">
+    <div class="menu-shade"></div>
+    <div class="menu-inner">
+      <div class="eyebrow">THE CROWD DEMANDS BLOOD</div>
+      <h1>BLOOD<span>PIT</span></h1>
+      <div class="ribbon">ARENA OF THE DAMNED</div>
+      <p class="tagline">Enter the sand. Choose your steel.<br><em>Leave nothing whole.</em></p>
+
+      <div class="weapon-pick">
+        <button class="weapon-card selected" data-weapon="sword">
+          <div class="card-art sword-art">
+            <svg viewBox="0 0 100 100" aria-hidden="true">
+              <path d="M50 4 L57 18 L56 62 L50 70 L44 62 L43 18 Z" fill="currentColor"/>
+              <rect x="32" y="64" width="36" height="7" rx="3" fill="currentColor"/>
+              <rect x="46" y="70" width="8" height="20" rx="3" fill="currentColor"/>
+              <circle cx="50" cy="93" r="5" fill="currentColor"/>
+            </svg>
+          </div>
+          <div class="card-name">SWORD</div>
+          <div class="card-desc">Fast arcs. Cut limbs clean.<br>Bisect them at the waist.</div>
+          <div class="card-tag">PRECISION · SPEED</div>
+          <div class="card-check">✓</div>
+        </button>
+
+        <button class="weapon-card" data-weapon="hammer">
+          <div class="card-art hammer-art">
+            <svg viewBox="0 0 100 100" aria-hidden="true">
+              <path d="M30 14 L70 14 L76 28 L70 42 L30 42 L24 28 Z" fill="currentColor"/>
+              <rect x="45" y="40" width="10" height="52" rx="4" fill="currentColor"/>
+              <circle cx="50" cy="93" r="5" fill="currentColor"/>
+              <path d="M40 10 L60 10 L60 16 L40 16 Z" fill="currentColor" opacity=".55"/>
+            </svg>
+          </div>
+          <div class="card-name">HAMMER</div>
+          <div class="card-desc">Slow, terrible weight.<br>Crush skulls, chests and arms.</div>
+          <div class="card-tag">BRUTALITY · IMPACT</div>
+          <div class="card-check">✓</div>
+        </button>
+      </div>
+
+      <button id="enter-btn" class="big-btn"><span>ENTER THE PIT</span></button>
+
+      <div class="controls-hint desktop-only">WASD MOVE &nbsp;·&nbsp; MOUSE AIM &nbsp;·&nbsp; LMB STRIKE &nbsp;·&nbsp; SHIFT DASH</div>
+      <div class="controls-hint touch-only">LEFT STICK MOVE &nbsp;·&nbsp; DRAG RIGHT TO AIM &nbsp;·&nbsp; STRIKE BUTTON</div>
+      <div class="gore-note">☠ &nbsp; MAXIMUM GORE &nbsp; ☠</div>
+    </div>
+    <div class="menu-footer">NO MERCY. NO SURVIVORS. NO CLEANUP CREW.</div>
+  </div>
+
+  <!-- ============ PAUSE ============ -->
+  <div id="pause" class="screen hidden">
+    <div class="menu-shade"></div>
+    <div class="pause-inner">
+      <h2>THE CROWD WAITS</h2>
+      <p>They will not wait long.</p>
+      <button id="resume-btn" class="big-btn"><span>RESUME</span></button>
+      <button id="quit-btn" class="ghost-btn">ABANDON THE PIT</button>
+    </div>
+  </div>
+
+  <!-- ============ DEATH ============ -->
+  <div id="death" class="screen hidden">
+    <div class="death-shade"></div>
+    <div class="death-inner">
+      <div class="eyebrow">THE SAND DRINKS DEEP</div>
+      <h2>YOU DIED</h2>
+      <div class="death-stats">
+        <div><b id="d-kills">0</b><small>KILLS</small></div>
+        <div><b id="d-wave">1</b><small>WAVE</small></div>
+        <div><b id="d-score">0</b><small>SCORE</small></div>
+      </div>
+      <p id="death-line">The crowd got what it paid for.</p>
+      <button id="retry-btn" class="big-btn"><span>RISE AGAIN</span></button>
+      <button id="menu-btn" class="ghost-btn">CHANGE WEAPON</button>
+    </div>
+  </div>
+
+  <!-- ============ TOUCH ============ -->
+  <div id="touch-controls" class="hidden">
+    <div id="joystick"><div id="stick"></div></div>
+    <div class="touch-right">
+      <button id="dash-btn" aria-label="Dash">DASH</button>
+      <button id="attack-btn" aria-label="Strike">STRIKE</button>
+    </div>
+  </div>
+
+  <div id="rotate-hint" class="hidden">Rotate your device for a wider pit</div>
+</div>
+
+<script type="module" src="./src/main.js"></script>
+</body>
+</html>
